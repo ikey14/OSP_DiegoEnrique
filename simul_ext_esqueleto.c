@@ -23,10 +23,6 @@ void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich);
 void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich);
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
-int main(){
-	char *orden;
-	 char *argumento1;
-	 char *argumento2;
 	 
 	 int i,j;
 	 unsigned long int m;
@@ -37,11 +33,9 @@ int main(){
      EXT_DATOS memdatos[MAX_BLOQUES_DATOS];
      EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
      int entradadir;
-
      FILE *fent;
      
      // Lectura del fichero completo de una sola vez
-
      
      fent = fopen("particion.bin","r+b");
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
@@ -53,32 +47,13 @@ int main(){
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
      
-     // Bucle de tratamiento de comandos
      for (;;){
-	     char *comando=NULL;
 	     do {
 		 printf (">> ");
 		 fflush(stdin);
 		 fgets(comando, LONGITUD_COMANDO, stdin);
-		 	char *token;
-		 	const char delimiter[] = " ";
-		 	//token the command to get the parts and do the orders.
-
-		 	// Tokenize the command
-		 	token = strtok(comando, delimiter);
-		 	orden = token; // The first token is the command
-
-		 	token = strtok(NULL, delimiter);
-		 	argumento1 = token; // The second token is argument1
-
-		 	token = strtok(NULL, delimiter);
-		 	argumento2 = token;
-
-
 		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
-
          // Escritura de metadatos en comandos rename, remove, copy     
-         Grabarinodosydirectorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
 	     int grabardatos;
