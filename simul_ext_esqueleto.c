@@ -23,9 +23,12 @@ void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich);
 void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich);
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
-	 
+	 int main(){
 	 int i,j;
 	 unsigned long int m;
+	 	char *orden;
+	 	char *argumento1;
+	 	char *argumento2;
      EXT_SIMPLE_SUPERBLOCK ext_superblock;
      EXT_BYTE_MAPS ext_bytemaps;
      EXT_BLQ_INODOS ext_blq_inodos;
@@ -48,6 +51,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
      
      for (;;){
+     	char *comando=NULL;
 	     do {
 		 printf (">> ");
 		 fflush(stdin);
