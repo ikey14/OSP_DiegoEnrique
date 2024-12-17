@@ -44,21 +44,25 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
      
      
-     memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
+/*   memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
      memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
-     memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
+     memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE); */
      
      for (;;){
-     	char *comando=NULL;
+     	char comando[LONGITUD_COMANDO];
 	     do {
 		 printf (">> ");
 		 fflush(stdin);
 		 fgets(comando, LONGITUD_COMANDO, stdin);
+	     printf("I am 1 \n");
 		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
+
+     	 //TODO: Make this orden = comando actually work
+     	 orden = comando;
          // Escritura de metadatos en comandos rename, remove, copy     
-         GrabarByteMaps(&ext_bytemaps,fent);
+         /* GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
 	     int grabardatos;
          if (grabardatos)
@@ -66,24 +70,29 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
          grabardatos = 0;
          //Si el comando es salir se habrán escrito todos los metadatos
          //faltan los datos y cerrar
+         */
 			if(orden=="salir") {
-				GrabarDatos(memdatos,fent);
-				fclose(fent);
+				//GrabarDatos(memdatos,fent);
+				//fclose(fent);
+				printf("salir command executed\n");
 				return 0;
 			}else if(orden=="info") {
-				LeeSuperBloque(&ext_superblock);
+				//LeeSuperBloque(&ext_superblock);
+				printf("info command executed");
 			}else if(orden=="bytemaps") {
-				Printbytemaps(&ext_bytemaps);
+				//Printbytemaps(&ext_bytemaps);
+				printf("Bytemaps command executed");
 			}else if(orden=="dir") {
-				Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
+				//Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
+				printf("dir command executed");
 			}else if(orden=="rename") {
-
+				printf("rename command executed");
 			}else if(orden=="print") {
-
+				printf("print command executed");
 			}else if(orden=="remove") {
-
+				printf("remove command executed");
 			}else if(orden=="copy") {
-
+				printf("copy command executed");
 			}
      	//switch (orden) {
 	        // case "salir":
@@ -162,4 +171,12 @@ int i;
 	for(i=0;i<20;i++){
 	printf("%p\tsize:%p\tblocks:%p",&directorio->dir_nfich,&inodos->INODE->size_fichero,&inodos->INODE->i_nbloque );
 	}
+}
+
+int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps,
+			EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich)
+{
+	 	//Mark one i-node as free in the superblock, since we are getting rid of one file.
+	 	ext_superblock->s_free_inodes_count++;
+	 	return 0;
 }
