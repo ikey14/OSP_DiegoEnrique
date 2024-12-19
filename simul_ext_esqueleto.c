@@ -23,6 +23,9 @@ void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich);
 void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich);
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
+//NEW FUNCTIONS NOT ORIGINALY IN THE FILE PROVIDED
+int IntToBin(int num);
+
 	 int main(){
 	 int i,j;
 	 unsigned long int m;
@@ -44,11 +47,11 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
      
      
-/*   memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
+     memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
      memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
-     memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE); */
+     memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
      
      for (;;){
      	char* comando = (char*)calloc(LONGITUD_COMANDO, sizeof(char));
@@ -86,17 +89,17 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      	 //printf("I am 2 \n");
 			if(strcmp(orden, "salir") == 0) {
 				//GrabarDatos(memdatos,fent);
-				//fclose(fent);
+				fclose(fent);
 				printf("salir command executed\n");
 				return 0;
 			}else if(strcmp(orden, "info") == 0) {
-				//LeeSuperBloque(&ext_superblock);
+				LeeSuperBloque(&ext_superblock);
 				printf("info command executed\n");
 			}else if(strcmp(orden, "bytemaps") == 0) {
-				//Printbytemaps(&ext_bytemaps);
+				Printbytemaps(&ext_bytemaps);
 				printf("Bytemaps command executed\n");
 			}else if(strcmp(orden, "dir") == 0) {
-				//Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
+				Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
 				printf("dir command executed\n");
 			}else if(strcmp(orden, "rename\n") == 0) {
 				printf("rename command executed\n");
@@ -105,6 +108,11 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 			}else if(strcmp(orden, "remove") == 0) {
 				printf("remove command executed\n");
 			}else if(strcmp(orden, "copy") == 0) {
+				printf("Give me a number in decimal.\n");
+				int answer;
+				scanf("%d",&answer);
+				int answerBin = IntToBin(answer);
+				printf("Your number in binary is: %d\n", answerBin);
 				printf("copy command executed\n");
 			}
      	//switch (orden) {
@@ -159,9 +167,31 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 	return -1; // Command not recognized
 }
 
+int IntToBin(int num)
+{
+		//Recursive function to turn a decimal number to binary. Not the best way to do it, but it works
+	 	if (num > 1)
+	 	{
+	 		IntToBin(num / 2);
+	 	}
+
+	 	printf("%d", num % 2);
+	 	return 0;
+
+
+}
+
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 	printf("Inodes: %p\n", ext_bytemaps->bmap_inodos);
 	printf("Blocks: %p\n",ext_bytemaps->bmap_bloques);
+
+	//Instead of a HEX result we get a BIN result
+	printf("Inodes (BINARY): ");
+	printf("%d", IntToBin(ext_bytemaps->bmap_inodos));
+	printf("\n");
+	printf("Blocks (BINARY): ");
+	printf("%d", IntToBin(ext_bytemaps->bmap_bloques));
+	printf("\n");
 
 
 }
