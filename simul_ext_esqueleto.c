@@ -51,16 +51,27 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE); */
      
      for (;;){
-     	char comando[LONGITUD_COMANDO];
+     	char* comando = (char*)calloc(LONGITUD_COMANDO, sizeof(char));
+		if (comando == NULL)
+		{
+			printf("Error allocating memory\n");
+			exit(0);
+        }
+
 	     do {
 		 printf (">> ");
 		 fflush(stdin);
 		 fgets(comando, LONGITUD_COMANDO, stdin);
-	     printf("I am 1 \n");
+	     //printf("I am 1 \n");
+	     orden = strtok(comando, "\n");
+	     /* printf("Comando: %s\n", comando);
+	     printf("Orden: %s\n", orden);
+	     printf("Length of comando: %d\n", strlen(comando));
+	     printf("Length of orden: %d\n", strlen(orden));
+	     printf("Length of \"salir\": %d\n", strlen("salir"));
+	     printf("strcmp between comando and orden: %d\n", strcmp(comando, orden)); */
 		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
 
-     	 //TODO: Make this orden = comando actually work
-     	 orden = comando;
          // Escritura de metadatos en comandos rename, remove, copy     
          /* GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
@@ -71,28 +82,30 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
          //Si el comando es salir se habrán escrito todos los metadatos
          //faltan los datos y cerrar
          */
-			if(orden=="salir") {
+
+     	 //printf("I am 2 \n");
+			if(strcmp(orden, "salir") == 0) {
 				//GrabarDatos(memdatos,fent);
 				//fclose(fent);
 				printf("salir command executed\n");
 				return 0;
-			}else if(orden=="info") {
+			}else if(strcmp(orden, "info") == 0) {
 				//LeeSuperBloque(&ext_superblock);
-				printf("info command executed");
-			}else if(orden=="bytemaps") {
+				printf("info command executed\n");
+			}else if(strcmp(orden, "bytemaps") == 0) {
 				//Printbytemaps(&ext_bytemaps);
-				printf("Bytemaps command executed");
-			}else if(orden=="dir") {
+				printf("Bytemaps command executed\n");
+			}else if(strcmp(orden, "dir") == 0) {
 				//Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
-				printf("dir command executed");
-			}else if(orden=="rename") {
-				printf("rename command executed");
-			}else if(orden=="print") {
-				printf("print command executed");
-			}else if(orden=="remove") {
-				printf("remove command executed");
-			}else if(orden=="copy") {
-				printf("copy command executed");
+				printf("dir command executed\n");
+			}else if(strcmp(orden, "rename\n") == 0) {
+				printf("rename command executed\n");
+			}else if(strcmp(orden, "print") == 0) {
+				printf("print command executed\n");
+			}else if(strcmp(orden, "remove") == 0) {
+				printf("remove command executed\n");
+			}else if(strcmp(orden, "copy") == 0) {
+				printf("copy command executed\n");
 			}
      	//switch (orden) {
 	        // case "salir":
