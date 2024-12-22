@@ -24,7 +24,6 @@ void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich);
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
 //NEW FUNCTIONS NOT ORIGINALY IN THE FILE PROVIDED
-int IntToBin(int num);
 
 	 int main(){
 	 int i,j;
@@ -40,19 +39,19 @@ int IntToBin(int num);
      EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
      int entradadir;
      FILE *fent;
-     
+
      // Lectura del fichero completo de una sola vez
-     
+
      fent = fopen("particion.bin","r+b");
-     fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
-     
-     
-     memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
+     fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
+
+
+	 	memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
      memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
-     
+
      for (;;){
      	char* comando = (char*)calloc(LONGITUD_COMANDO, sizeof(char));
 		if (comando == NULL)
@@ -75,16 +74,15 @@ int IntToBin(int num);
 	     printf("strcmp between comando and orden: %d\n", strcmp(comando, orden)); */
 		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
 
-         // Escritura de metadatos en comandos rename, remove, copy     
+         // Escritura de metadatos en comandos rename, remove, copy
          /* GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
 	     int grabardatos;
          if (grabardatos)
            GrabarDatos(memdatos,fent);
-         grabardatos = 0;
+         grabardatos = 0; */
          //Si el comando es salir se habrán escrito todos los metadatos
          //faltan los datos y cerrar
-         */
 
      	 //printf("I am 2 \n");
 			if(strcmp(orden, "salir") == 0) {
@@ -109,10 +107,8 @@ int IntToBin(int num);
 				printf("remove command executed\n");
 			}else if(strcmp(orden, "copy") == 0) {
 				printf("Give me a number in decimal.\n");
-				int answer;
+				unsigned int answer;
 				scanf("%d",&answer);
-				int answerBin = IntToBin(answer);
-				printf("Your number in binary is: %d\n", answerBin);
 				printf("copy command executed\n");
 			}
      	//switch (orden) {
@@ -167,19 +163,6 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 	return -1; // Command not recognized
 }
 
-int IntToBin(int num)
-{
-		//Recursive function to turn a decimal number to binary. Not the best way to do it, but it works
-	 	if (num > 1)
-	 	{
-	 		IntToBin(num / 2);
-	 	}
-
-	 	printf("%d", num % 2);
-	 	return 0;
-
-
-}
 
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 	printf("Inodes: %p\n", ext_bytemaps->bmap_inodos);
@@ -187,15 +170,16 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 
 	//Instead of a HEX result we get a BIN result
 	printf("Inodes (BINARY): ");
-	printf("%d", IntToBin(ext_bytemaps->bmap_inodos));
+	 	//IntToBin((unsigned int)ext_bytemaps->bmap_inodos);
 	printf("\n");
 	printf("Blocks (BINARY): ");
-	printf("%d", IntToBin(ext_bytemaps->bmap_bloques));
+	 //	printf("%d", IntToBin((int)ext_bytemaps->bmap_bloques));
 	printf("\n");
 
 
 }
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
+
 	printf("block %d bytes\n",psup->s_block_size);
 	printf("Partition inodes: %d \n",psup->s_inodes_count);
 	printf("Free inodes: %d \n",psup->s_free_inodes_count);
@@ -222,4 +206,10 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	 	//Mark one i-node as free in the superblock, since we are getting rid of one file.
 	 	ext_superblock->s_free_inodes_count++;
 	 	return 0;
+}
+
+
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich)
+{
+	 	//TODO: Implement this function so that no errors arise
 }
