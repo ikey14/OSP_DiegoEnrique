@@ -9,7 +9,7 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps);
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2);
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre);
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre);
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos);
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo);
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre);
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,
@@ -47,7 +47,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
 
 	 	memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
-     memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
+     memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], MAX_FICHEROS);
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
@@ -97,7 +97,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 				Printbytemaps(&ext_bytemaps);
 				printf("Bytemaps command executed\n");
 			}else if(strcmp(orden, "dir") == 0) {
-				Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos,argumento1);
+				Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos);
 				printf("dir command executed\n");
 			}else if(strcmp(orden, "rename\n") == 0) {
 				printf("rename command executed\n");
@@ -192,13 +192,24 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
 
 }
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,  char *nombre) {
-int i;
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
+	 	printf("Directory contents:\n");
+	 	printf("%-17s %-10s %-8s %-8s\n", "Filename", "Size", "Inode", "Blocks");
 
-	for(i=0;i<20;i++){
-	printf("%p\tsize:%p\tblocks:%p",&directorio->dir_nfich,&inodos->INODE->size_fichero,&inodos->INODE->i_nbloque );
-	}
-}
+	 	for (int i = 0; i < MAX_FICHEROS; i++) {
+	 		if (directorio[i].dir_inodo != NULL_INODO) {  // Skip the root directory entry
+	 			EXT_SIMPLE_INODE *inode = &inodos->blq_inodos[directorio[i].dir_inodo];
+	 			printf("%-17s %-10u %-8u ", directorio[i].dir_nfich, inode->size_fichero, directorio[i].dir_inodo);
+
+	 			// Print the block numbers that this inode uses
+	 			printf("Blocks: ");
+	 			for (int j = 0; j < MAX_NUMS_BLOQUE_INODO && inode->i_nbloque[j] != NULL_BLOQUE; j++) {
+	 				printf("%u ", inode->i_nbloque[j]);
+	 			}
+	 			printf("\n");
+	 		}
+	 	}
+	 }
 
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps,
 			EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich)

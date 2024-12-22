@@ -38,7 +38,6 @@ typedef struct {
 typedef struct {
   EXT_SIMPLE_INODE blq_inodos[MAX_INODOS];
   unsigned char blq_relleno[SIZE_BLOQUE-MAX_INODOS*sizeof(EXT_SIMPLE_INODE)];
-  EXT_SIMPLE_INODE*INODE;
 } EXT_BLQ_INODOS;
 
 /* Entrada individual del directorio */
