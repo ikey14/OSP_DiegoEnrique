@@ -120,6 +120,9 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
 int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **argumento2, char* token){
 	 	//---------COMMAND SPLITTING---------//
+	 	// Single line fix, now it is not neccessary to put an extar space when using a comand with no arguments.
+	 	strcomando = strtok(strcomando, "\n");
+	 	printf("Comando: %s\n", strcomando);
 	 	token = strtok(strcomando, " ");
 
 	 	for (int i = 0; i < 3; i++)
