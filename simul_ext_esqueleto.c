@@ -181,16 +181,27 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
 
 
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
-	printf("Inodes: %p\n", ext_bytemaps->bmap_inodos);
-	printf("Blocks: %p\n",ext_bytemaps->bmap_bloques);
+	 	unsigned char *inodes = malloc(MAX_INODOS * sizeof(unsigned char));
+	 	unsigned char *blocks = malloc(25 * sizeof(unsigned char));
+	 	for (int i = 0; i < MAX_INODOS; i++) {
+	 		inodes[i]=ext_bytemaps->bmap_inodos[i];
+	 	}
+	 	printf("Inodes: ");
+	 	for (int i = 0; i < MAX_INODOS; i++) {
+	 		printf("%x ", inodes[i]);
+	 	}
+	 	printf("\n");
+	 	printf("Blocks[0-25]: ");
+	 	for (int j = 0; j < 25; j++) {
+	 		blocks[j]=ext_bytemaps->bmap_bloques[j];
+	 	}
+	 	for (int j = 0; j < 25; j++) {
+	 		printf("%x ", blocks[j]);
+	 	}
+	 	printf("\n");
+	 	free(inodes);
+	 	free(blocks);
 
-	//Instead of a HEX result we get a BIN result
-	printf("Inodes (BINARY): ");
-	 	//IntToBin((unsigned int)ext_bytemaps->bmap_inodos);
-	printf("\n");
-	printf("Blocks (BINARY): ");
-	 //	printf("%d", IntToBin((int)ext_bytemaps->bmap_bloques));
-	printf("\n");
 
 
 }
