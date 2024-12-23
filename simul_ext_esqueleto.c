@@ -79,19 +79,19 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 		 } while (ComprobarComando(comando,&orden,&argumento1,&argumento2, token) !=0);
 
          // Escritura de metadatos en comandos rename, remove, copy
-         /* GrabarByteMaps(&ext_bytemaps,fent);
+         //GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
 	     int grabardatos;
          if (grabardatos)
            GrabarDatos(memdatos,fent);
-         grabardatos = 0; */
+         grabardatos = 0;
          //Si el comando es salir se habrán escrito todos los metadatos
          //faltan los datos y cerrar
 
      	 //printf("I am 2 \n");
      	 printf("Orden: %s\n", orden);
 			if(strcmp(orden, "salir") == 0) {
-				//GrabarDatos(memdatos,fent);
+				GrabarDatos(memdatos,fent);
 				fclose(fent);
 				printf("salir command executed\n");
 				return 0;
@@ -106,13 +106,16 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 				printf("dir command executed\n");
 			}else if(strcmp(orden, "rename") == 0) {
 				Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
+				grabardatos = 1;
 				printf("rename command executed\n");
 			}else if(strcmp(orden, "print") == 0) {
 				printf("print command executed\n");
 			}else if(strcmp(orden, "remove") == 0) {
 				Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
+				grabardatos = 1;
 				printf("remove command executed\n");
 			}else if(strcmp(orden, "copy") == 0) {
+				//grabardatos = 1;
 				printf("copy command executed\n");
 			}
          }
@@ -285,11 +288,48 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 }
 
 
-
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich)
 {
-	 	//TODO: Implement this function so that no errors arise
+	 	// Move the file pointer to the first data block in the partition
+	 	fseek(fich, PRIM_BLOQUE_DATOS * SIZE_BLOQUE, SEEK_SET);
+
+	 	// Write the data blocks to the file
+	 	int binWrite = fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
+
+	 	printf("Objects written: %d\n", binWrite);
+
+	 	// Verify that all blocks were written correctly
+	 	if (binWrite != MAX_BLOQUES_DATOS)
+	 	{
+	 		printf("Error: Failed to write data blocks to file.\n");
+	 	} else
+	 	{
+	 		printf("Data blocks successfully written to file.\n");
+	 	}
 }
+
+// Almost copy paste from the "GrabarDatos" function
+void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich)
+{
+	 	// Move the file pointer to the location of the superblock (block 0)
+	 	fseek(fich, 0, SEEK_SET);
+
+	 	// Write the superblock to the file
+	 	int binWrite = fwrite(ext_superblock, SIZE_BLOQUE, 1, fich);
+
+	 	printf("Objects written: %d\n", binWrite);
+
+	 	// Verify that the superblock was written correctly
+	 	if (binWrite != 1)
+	 	{
+	 		printf("Error: Failed to write the superblock to the file.\n");
+	 	} else
+	 	{
+	 		printf("Superblock successfully written to file.\n");
+	 	}
+}
+
+
 
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo)
 {
