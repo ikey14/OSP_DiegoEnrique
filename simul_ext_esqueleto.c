@@ -195,6 +195,7 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 	 	for (int j = 0; j < 25; j++) {
 	 		printf("%x ", blocks[j]);
 	 	}
+	 	printf("\n");
 	 	free(inodes);
 	 	free(blocks);
 
