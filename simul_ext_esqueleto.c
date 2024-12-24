@@ -108,6 +108,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 				Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
 				printf("rename command executed\n");
 			}else if(strcmp(orden, "print") == 0) {
+				Imprimir(directorio,&ext_blq_inodos, memdatos, argumento1);
 				printf("print command executed\n");
 			}else if(strcmp(orden, "remove") == 0) {
 				Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
@@ -214,28 +215,34 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
 
 }
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
+		for (int i = 0; i < MAX_FICHEROS; i++) {
+			if(nombre == directorio[i].dir_nfich) {
+				printf("File exists\n");
 
-	 	// Placeholder until the function is implemented
+			}else {
+				printf("File doesn't exist\n");
+			}
+		}
+
 	 	return 0;
 }
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
 	 	printf("Directory contents:\n");
-	 	printf("%-17s %-10s %-8s %-8s\n", "Filename", "Size", "Inode", "Blocks");
-
 	 	for (int i = 0; i < MAX_FICHEROS; i++) {
-	 		if (directorio[i].dir_inodo != NULL_INODO) {  // Skip the root directory entry
-	 			EXT_SIMPLE_INODE *inode = &inodos->blq_inodos[directorio[i].dir_inodo];
-	 			printf("%-17s %-10u %-8u ", directorio[i].dir_nfich, inode->size_fichero, directorio[i].dir_inodo);
+	 		unsigned int size= inodos->blq_inodos[i].size_fichero;
+	 		unsigned int inode=inodos->blq_inodos;
 
-	 			// Print the block numbers that this inode uses
-	 			printf("Blocks: ");
-	 			for (int j = 0; j < MAX_NUMS_BLOQUE_INODO && inode->i_nbloque[j] != NULL_BLOQUE; j++) {
-	 				printf("%u ", inode->i_nbloque[j]);
-	 			}
-	 			printf("\n");
-	 		}
+		    unsigned short int *blocks = inodos->blq_inodos[i].i_nbloque;
+
+			if (size!=0){
+
+			printf("%s\tsize:%u\tinode:%hu\n",directorio[i].dir_nfich,size,inode);
+			}
 	 	}
-	 }
+		}
+
+
+
 
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps,
 			EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre, FILE *fich)
@@ -299,7 +306,7 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 
 void GrabarDatos(EXT_DATOS *memdatos, FILE *fich)
 {
-	 	//TODO: Implement this function so that no errors arise
+
 }
 
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo)
