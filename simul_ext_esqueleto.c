@@ -50,9 +50,9 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 	 //fent = fopen("particion.bin","r+b");
 
 	 //ENRIQUE FILE OPEN ABSOLUTE PATH
-     fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
+     //fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
 	 //DIEGO FILE OPEN ABSOLUTE PATH
-	 //fent = fopen("C:\\INTRODUCE ABSOLUTE PATH HERE\\particion.bin","r+b");
+	 fent = fopen("C:\\Users\\Diego\\CLionProjects\\OSP_DiegoEnrique\\particion.bin","r+b");
 	 if (fent == NULL)
 	 {
 	 	printf("Error opening partition file, terminating program.\n");
@@ -115,7 +115,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 				Printbytemaps(&ext_bytemaps);
 				printf("Bytemaps command executed\n");
 			}else if(strcmp(orden, "dir") == 0) {
-				Directorio(&directorio[MAX_FICHEROS],&ext_blq_inodos);
+				Directorio(directorio,&ext_blq_inodos);
 				printf("dir command executed\n");
 			}else if(strcmp(orden, "rename") == 0) {
 				Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
@@ -235,21 +235,26 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
 	 	return 0;
 }
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
+
 	 	printf("Directory contents:\n");
-	 	printf("%-17s %-10s %-8s %-8s\n", "Filename", "Size", "Inode", "Blocks");
+	 	for(int i=0;i<MAX_FICHEROS;i++) {
+	 		int inode_index = directorio[i].dir_inodo;
+	 		unsigned short int size = inodos->blq_inodos[inode_index].size_fichero;
 
-	 	for (int i = 0; i < MAX_FICHEROS; i++) {
-	 		if (directorio[i].dir_inodo != NULL_INODO) {  // Skip the root directory entry
-	 			EXT_SIMPLE_INODE *inode = &inodos->blq_inodos[directorio[i].dir_inodo];
-	 			printf("%-17s %-10u %-8u ", directorio[i].dir_nfich, inode->size_fichero, directorio[i].dir_inodo);
 
-	 			// Print the block numbers that this inode uses
-	 			printf("Blocks: ");
-	 			for (int j = 0; j < MAX_NUMS_BLOQUE_INODO && inode->i_nbloque[j] != NULL_BLOQUE; j++) {
-	 				printf("%u ", inode->i_nbloque[j]);
+	 		if(size!=0) {
+
+	 			printf("%s\tsize:%u\tinode:%d\t",directorio[i].dir_nfich,size,inode_index);
+	 			for(int j=0;j<MAX_NUMS_BLOQUE_INODO;j++) {
+	 				printf("%u", inodos->blq_inodos[inode_index].i_nbloque[j]);
 	 			}
 	 			printf("\n");
+
+
+
 	 		}
+
+
 	 	}
 	 }
 
