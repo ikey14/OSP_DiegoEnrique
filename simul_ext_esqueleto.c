@@ -45,8 +45,20 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
      FILE *fent;
 
      // Lectura del fichero completo de una sola vez
+	 // Problem found: fent was a NULL pointer, so the file was not being opened
+	 // Temporary solution: introduce absolute path to the "particion.bin" file. A universal solution will be implemented when found.
+	 //fent = fopen("particion.bin","r+b");
 
-     fent = fopen("particion.bin","r+b");
+	 //ENRIQUE FILE OPEN ABSOLUTE PATH
+     fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
+	 //DIEGO FILE OPEN ABSOLUTE PATH
+	 //fent = fopen("C:\\INTRODUCE ABSOLUTE PATH HERE\\particion.bin","r+b");
+	 if (fent == NULL)
+	 {
+	 	printf("Error opening partition file, terminating program.\n");
+	 	return 0;
+	 }
+
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
 
 	 memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
@@ -79,7 +91,8 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 		 } while (ComprobarComando(comando,&orden,&argumento1,&argumento2, token) !=0);
 
          // Escritura de metadatos en comandos rename, remove, copy
-         //GrabarByteMaps(&ext_bytemaps,fent);
+     	 Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+         GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
 	     int grabardatos;
          if (grabardatos)
@@ -260,7 +273,7 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	 	// If the file is not found, return an error telling the user that the file either doesn't exist or wasn't found
 	 	if (found == -1)
 	 	{
-	 		printf("Error: File '%s' doesn't exist or was not found.\n", nombre);
+	 		printf("Error: File \"%s\" doesn't exist or was not found.\n", nombre);
 	 		return -1;
 	 	}
 
@@ -307,7 +320,7 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich)
 	 	// Write the data blocks to the file
 	 	int binWrite = fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
 
-	 	printf("Objects written: %d\n", binWrite);
+	 	printf("Objects written (DATA): %d\n", binWrite);
 
 	 	// Verify that all blocks were written correctly
 	 	if (binWrite != MAX_BLOQUES_DATOS)
@@ -328,7 +341,7 @@ void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich)
 	 	// Write the superblock to the file
 	 	int binWrite = fwrite(ext_superblock, SIZE_BLOQUE, 1, fich);
 
-	 	printf("Objects written: %d\n", binWrite);
+	 	printf("Objects written (SUPERBLOCK): %d\n", binWrite);
 
 	 	// Verify that the superblock was written correctly
 	 	if (binWrite != 1)
@@ -340,6 +353,62 @@ void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich)
 	 	}
 }
 
+// Almost copy paste from the "GrabarDatos" function
+void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich)
+{
+	 	// Move the file pointer to the location of the bytemaps (block 1)
+	 	fseek(fich, SIZE_BLOQUE, SEEK_SET);
+
+	 	// Write the bytemaps to the file
+	 	int binWrite = fwrite(ext_bytemaps, SIZE_BLOQUE, 1, fich);
+
+	 	printf("Objects written (BYTEMAPS): %d\n", binWrite);
+
+	 	// Verify if the bytemaps block was written to correctly
+	 	if (binWrite != 1)
+	 	{
+	 		printf("Error: Failed to write the bytemaps to the file.\n");
+	 	} else
+	 	{
+	 		printf("Bytemaps successfully written to file.\n");
+	 	}
+}
+
+// Almost copy paste from the "GrabarDatos" function, but this one is a 2x1 function (has to write the inodes and the directory)
+void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich)
+{
+	 	// Write the inodes block to its location (block 2)
+	 	// (Move file pointer first and write later)
+	 	fseek(fich, 2 * SIZE_BLOQUE, SEEK_SET);
+	 	int binWriteInode = fwrite(inodos, SIZE_BLOQUE, 1, fich);
+
+	 	printf("Objects written (INODES): %d\n", binWriteInode);
+
+	 	// Verify if the inodes block was written to correctly
+	 	if (binWriteInode != 1)
+	 	{
+	 		printf("Error: Failed to write inodes block to the file.\n");
+	 	} else
+	 	{
+	 		printf("Inodes block successfully written to file.\n");
+	 	}
+
+	 	// Write the directory block to its location (block 3)
+	 	// (Move file pointer first and write later)
+	 	fseek(fich, 3 * SIZE_BLOQUE, SEEK_SET);
+	 	int binWriteDir = fwrite(directorio, SIZE_BLOQUE, 1, fich);
+
+	 	printf("Objects written (DIRECTORY): %d\n", binWriteDir);
+
+	 	// Verify if the directory block was written to correctly
+	 	if (binWriteDir != 1)
+	 	{
+	 		printf("Error: Failed to write directory block to the file.\n");
+	 	} else
+	 	{
+	 		printf("Directory block successfully written to file.\n");
+	 	}
+}
 
 
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo)
