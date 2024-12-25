@@ -53,7 +53,6 @@ int main() {
     EXT_DATOS memdatos[MAX_BLOQUES_DATOS];
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     int entradadir;
-    FILE *fent;
 
     // Lectura del fichero completo de una sola vez
     // Problem found: fent was a NULL pointer, so the file was not being opened
@@ -64,7 +63,7 @@ int main() {
     //fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
     //DIEGO FILE OPEN ABSOLUTE PATH
     // TODO allow relative paths
-    fent = fopen("particion.bin", "r+b");
+    FILE *fent = fopen("particion.bin", "r+b");
     if (fent == NULL) {
         printf("Error opening partition file, terminating program.\n");
         return 0;
@@ -238,34 +237,30 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
     printf("Directory contents:\n");
-    for (int i = 0; i < MAX_FICHEROS; i++) {
-        if ((strcmp(directorio[i].dir_nfich, "."  ) == 0)||
-            (strcmp(directorio[i].dir_nfich, ""  )==0)||
-            (strcmp(directorio[i].dir_nfich, "\\"  )==0)) {
-            continue;
-        }
-        printf("%s\t", directorio[i].dir_nfich);
-        int inode_index = directorio[i].dir_inodo;
-        for (int j = 0; j < MAX_INODOS; j++) {
-            if (inodos->blq_inodos[j].size_fichero != 0) {
-                unsigned short int size = inodos->blq_inodos[j].size_fichero;
-                printf("size:%u\t",size);
-                printf("blocks: ");
-                for (int k = 0; k < MAX_NUMS_BLOQUE_INODO; k++) {
-                    // TODO Fix constant
-                    if(inodos->blq_inodos[j].i_nbloque[k]<100){
-                        unsigned short int blocks = inodos->blq_inodos[j].i_nbloque[k];
-                        printf("%u ",blocks);
-
-                    }
+    for (int i = 0; i < 1; i++) {
+        if (directorio[i].dir_inodo < 100) {
+            for (int j = 0; j < 17; j++) {
+                printf("%c", directorio[i].dir_nfich[j]);
                 }
-                printf("\n");
+            for (int j = 0; j < MAX_INODOS; j++) {
+                if (inodos->blq_inodos[j].size_fichero != 0) {
+                    unsigned short int size = inodos->blq_inodos[j].size_fichero;
+                    printf("size:%u\t", size);
+                    printf("blocks: ");
+                    for (int k = 0; k < MAX_NUMS_BLOQUE_INODO; k++) {
+                        // TODO Fix constant
+                        if (inodos->blq_inodos[j].i_nbloque[k] < 100) {
+                            unsigned short int blocks = inodos->blq_inodos[j].i_nbloque[k];
+                            printf("%u ", blocks);
+                        }
+                    }
+                    printf("\n");
+                }
             }
-
         }
-
     }
 }
+
 
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps,
            EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre, FILE *fich) {
@@ -325,7 +320,8 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich) {
     fseek(fich, PRIM_BLOQUE_DATOS * SIZE_BLOQUE, SEEK_SET);
 
     // Write the data blocks to the file
-    int binWrite = fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
+    int binWrite;
+    binWrite = fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
 
     printf("Objects written (DATA): %d\n", binWrite);
 
