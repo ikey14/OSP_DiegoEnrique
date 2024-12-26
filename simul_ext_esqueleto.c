@@ -131,6 +131,7 @@ int main() {
             grabardatos = 1;
             printf("rename command executed\n");
         } else if (strcmp(orden, "print") == 0) {
+            Imprimir(directorio, &ext_blq_inodos, datosfich, argumento1);
             printf("print command executed\n");
         } else if (strcmp(orden, "remove") == 0) {
             Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
@@ -230,10 +231,36 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
 }
 
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
-    // TODO print function
-    // Placeholder until the function is implemented
+    int found = -1;
+
+    // Search for the file in the directory (once found, we break the loop)
+    for (int i = 0; i < MAX_FICHEROS; i++) {
+        if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombre) == 0) {
+            found = i;
+            break;
+        }
+    }
+
+    // If the file is not found, return an error telling the user that the file either doesn't exist or wasn't found
+    if (found == -1) {
+        printf("Error: File \"%s\" doesn't exist or was not found.\n", nombre);
+        return -1;
+    }
+    char *printText = malloc(sizeof(char) * SIZE_BLOQUE);
+
+    for (int j = 0; j < 1; j++) {
+        unsigned short int blocks = inodos[directorio[found].dir_inodo].blq_inodos->i_nbloque[j];
+        memcpy(printText, &memdatos[blocks], SIZE_BLOQUE);
+        printf("%s\n", printText);
+    }
+
+
+    printf("\n");
+
+    free(printText);
     return 0;
 }
+
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
     printf("Directory contents:\n");
@@ -241,7 +268,7 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
         if (directorio[i].dir_inodo < 100) {
             for (int j = 0; j < 17; j++) {
                 printf("%c", directorio[i].dir_nfich[j]);
-                }
+            }
             for (int j = 0; j < MAX_INODOS; j++) {
                 if (inodos->blq_inodos[j].size_fichero != 0) {
                     unsigned short int size = inodos->blq_inodos[j].size_fichero;
