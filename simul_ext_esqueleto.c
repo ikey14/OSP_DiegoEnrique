@@ -138,7 +138,7 @@ int main() {
             grabardatos = 1;
             printf("remove command executed\n");
         } else if (strcmp(orden, "copy") == 0) {
-            // TODO copy function
+            Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent);
             //grabardatos = 1;
             printf("copy command executed\n");
         }
@@ -469,4 +469,76 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
     //File renamed, we return 0 to signal that everything went well
     printf("File \"%s\" renamed to \"%s\".\n", nombreantiguo, nombrenuevo);
     return 0;
+}
+
+int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,
+           EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,
+           EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich) {
+    int foundDest = -1;
+    int foundSrc = -1;
+    int freeFile = 0;
+    unsigned int freeblocks = 0;
+    int freeInode = 0;
+    for (int i = 0; i < MAX_FICHEROS; i++) {
+        // This happens when the file we want to delete is found (not NULL inode and the name matches)
+        if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombreorigen) == 0) {
+            // Found takes the value of the index where the file we want to delete is
+            foundSrc = i;
+            break;
+        }
+    }
+    for (int i = 0; i < MAX_FICHEROS; i++) {
+        // This happens when the file we want to delete is found (not NULL inode and the name matches)
+        if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombredestino) == 0) {
+            // Found takes the value of the index where the file we want to delete is
+            foundDest = i;
+            break;
+        }
+    }
+
+    // If the file is not found, return an error telling the user that the file either doesn't exist or wasn't found
+    if (foundSrc == -1) {
+        printf("Error: File \"%s\" doesn't exist or was not found.\n", nombreorigen);
+        return -1;
+    }
+    if (foundDest != -1) {
+        printf("You cannot paste a file in the position of another file\n");
+        return -1;
+    }
+    //check for a free file postion
+    for (int i = 0; i < MAX_FICHEROS; i++) {
+        if (directorio[i].dir_inodo != NULL_INODO) {
+            freeFile = i;
+        }
+    }
+    for (int i = 0; i < MAX_INODOS; i++) {
+        if (inodos[i].blq_inodos != NULL) {
+            freeInode = i;
+        }
+    }
+    memcpy(directorio[freeFile].dir_nfich, directorio[foundSrc].dir_nfich,LEN_NFICH);
+    memcpy(&inodos->blq_inodos[freeInode].size_fichero,
+           &inodos->blq_inodos[directorio[foundSrc].dir_inodo].size_fichero, sizeof(unsigned int));
+
+    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
+        if (inodos[freeInode].blq_inodos == NULL) {
+            freeblocks = i;
+            memcpy(&inodos[freeInode].blq_inodos[freeblocks], &inodos[directorio[foundSrc].dir_inodo].blq_inodos,
+                   sizeof(unsigned int));
+        }
+    }
+    for (int k = 0; k < MAX_INODOS; k++) {
+        if (k == freeInode) {
+            memcpy(&ext_bytemaps->bmap_inodos[k], &inodos->blq_inodos[freeInode], sizeof(unsigned int));
+        }
+
+        for (int i1 = 0; i1 < MAX_BLOQUES_PARTICION; i1++) {
+            if (i1 == freeblocks) {
+                memcpy(&ext_bytemaps->bmap_bloques[i1], &inodos->blq_inodos[freeInode].i_nbloque, sizeof(unsigned int));
+            }
+        }
+
+
+        return 0;
+    }
 }
