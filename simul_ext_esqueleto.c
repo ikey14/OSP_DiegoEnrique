@@ -53,6 +53,7 @@ int main() {
     EXT_DATOS memdatos[MAX_BLOQUES_DATOS];
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     int entradadir;
+    FILE *fent;
 
     // Lectura del fichero completo de una sola vez
     // Problem found: fent was a NULL pointer, so the file was not being opened
@@ -63,7 +64,7 @@ int main() {
     //fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
     //DIEGO FILE OPEN ABSOLUTE PATH
     // TODO allow relative paths
-    FILE *fent = fopen("particion.bin", "r+b");
+    fent = fopen("particion.bin", "r+b");
     if (fent == NULL) {
         printf("Error opening partition file, terminating program.\n");
         return 0;
@@ -72,7 +73,7 @@ int main() {
     fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
 
     memcpy(&ext_superblock, (EXT_SIMPLE_SUPERBLOCK *) &datosfich[0], SIZE_BLOQUE);
-    memcpy(&directorio, (EXT_ENTRADA_DIR *) &datosfich[3], MAX_FICHEROS);
+    memcpy(&directorio, (EXT_ENTRADA_DIR *) &datosfich[3], SIZE_BLOQUE);
     memcpy(&ext_bytemaps, (EXT_BLQ_INODOS *) &datosfich[1], SIZE_BLOQUE);
     memcpy(&ext_blq_inodos, (EXT_BLQ_INODOS *) &datosfich[2], SIZE_BLOQUE);
     memcpy(&memdatos, (EXT_DATOS *) &datosfich[4],MAX_BLOQUES_DATOS * SIZE_BLOQUE);
@@ -97,23 +98,28 @@ int main() {
             //printf("Length of orden: %d\n", strlen(orden));
             //printf("Length of \"salir\": %d\n", strlen("salir"));
             //printf("strcmp between comando and orden: %d\n", strcmp(comando, orden));
+            //printf("Directorio pointer: %p\n", &directorio);
+            //printf("File 1: %s\t I-Node: %d\t Size: %d\n", directorio[0].dir_nfich, directorio[0].dir_inodo, ext_blq_inodos.blq_inodos[directorio[0].dir_inodo].size_fichero);
+            //printf("File 2: %s\t I-Node: %d\t Size: %d\n", directorio[1].dir_nfich, directorio[1].dir_inodo, ext_blq_inodos.blq_inodos[directorio[1].dir_inodo].size_fichero);
+            //printf("File 3: %s\t I-Node: %d\t Size: %d\n", directorio[2].dir_nfich, directorio[2].dir_inodo, ext_blq_inodos.blq_inodos[directorio[2].dir_inodo].size_fichero);
+            //printf("File 4: %s\t I-Node: %d\t Size: %d\n", directorio[3].dir_nfich, directorio[3].dir_inodo, ext_blq_inodos.blq_inodos[directorio[3].dir_inodo].size_fichero);
+
+
         } while (ComprobarComando(comando, &orden, &argumento1, &argumento2, token) != 0);
 
         // Escritura de metadatos en comandos rename, remove, copy
-        Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-        GrabarByteMaps(&ext_bytemaps, fent);
-        GrabarSuperBloque(&ext_superblock, fent);
-        int grabardatos;
-        if (grabardatos)
-            GrabarDatos(memdatos, fent);
-        grabardatos = 0;
+        //Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+        //GrabarByteMaps(&ext_bytemaps, fent);
+        //GrabarSuperBloque(&ext_superblock, fent);
+        int grabardatos = 0;
+        //GrabarDatos(memdatos, fent);
         //Si el comando es salir se habrán escrito todos los metadatos
         //faltan los datos y cerrar
 
         //printf("I am 2 \n");
         printf("Orden: %s\n", orden);
         if (strcmp(orden, "salir") == 0) {
-            GrabarDatos(memdatos, fent);
+            //GrabarDatos(memdatos, fent);
             fclose(fent);
             printf("salir command executed\n");
             return 0;
@@ -138,9 +144,9 @@ int main() {
             grabardatos = 1;
             printf("remove command executed\n");
         } else if (strcmp(orden, "copy") == 0) {
-            Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent);
-            //grabardatos = 1;
-            printf("copy command executed\n");
+            int copyStatus = Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent);
+            grabardatos = 1;
+            printf("copy command executed with status: %d\n", copyStatus);
         }
     }
 }
@@ -261,29 +267,27 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
     return 0;
 }
 
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos)
+{
+    // We start the loop with 1 instead of 0 so that we don't list the directory itself.
+    for (int i = 1; i < MAX_INODOS; i++)
+    {
+        if (directorio[i].dir_inodo != NULL_INODO)
+        {
+            //Now that we know that the i-node isn't null, we search it in the inodes array and print the file's attributes.
+            EXT_SIMPLE_INODE *inode = &inodos->blq_inodos[directorio[i].dir_inodo];
+            printf("%s\tSize: %d\tI-Node: %d\tBlocks Occupied: ", directorio[i].dir_nfich, inode->size_fichero, directorio[i].dir_inodo);
 
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
-    printf("Directory contents:\n");
-    for (int i = 0; i < 1; i++) {
-        if (directorio[i].dir_inodo < 100) {
-            for (int j = 0; j < 17; j++) {
-                printf("%c", directorio[i].dir_nfich[j]);
-            }
-            for (int j = 0; j < MAX_INODOS; j++) {
-                if (inodos->blq_inodos[j].size_fichero != 0) {
-                    unsigned short int size = inodos->blq_inodos[j].size_fichero;
-                    printf("size:%u\t", size);
-                    printf("blocks: ");
-                    for (int k = 0; k < MAX_NUMS_BLOQUE_INODO; k++) {
-                        // TODO Fix constant
-                        if (inodos->blq_inodos[j].i_nbloque[k] < 100) {
-                            unsigned short int blocks = inodos->blq_inodos[j].i_nbloque[k];
-                            printf("%u ", blocks);
-                        }
-                    }
-                    printf("\n");
+            //To know which blocks the file is occuppying, we need to go through i-node blocks array to see which ones aren't null
+            //If they aren't null then they are in use by the file.
+            for (int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++)
+            {
+                if (inode->i_nbloque[j] != NULL_BLOQUE)
+                {
+                    printf("%d ", inode->i_nbloque[j]);
                 }
             }
+            printf("\n");
         }
     }
 }
