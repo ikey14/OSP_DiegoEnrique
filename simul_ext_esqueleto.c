@@ -61,10 +61,10 @@ int main() {
     //fent = fopen("particion.bin","r+b");
 
     //ENRIQUE FILE OPEN ABSOLUTE PATH
-    fent = fopen("particion.bin", "r+b");
+    //fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
     //DIEGO FILE OPEN ABSOLUTE PATH
     // TODO allow relative paths
-    //fent = fopen("particion.bin", "r+b");
+    fent = fopen("particion.bin", "r+b");
     if (fent == NULL) {
         printf("Error opening partition file, terminating program.\n");
         return 0;
@@ -89,35 +89,21 @@ int main() {
             printf(">> ");
             fflush(stdin);
             fgets(comando, LONGITUD_COMANDO, stdin);
-            //printf("I am 1 \n");
-            //orden = strtok(comando, "\n");
-            //SplitCommand(comando, orden, argumento1, argumento2, token);
-            //printf("Comando: %s\n", comando);
-            //printf("Orden: %s\n", orden);
-            //printf("Length of comando: %d\n", strlen(comando));
-            //printf("Length of orden: %d\n", strlen(orden));
-            //printf("Length of \"salir\": %d\n", strlen("salir"));
-            //printf("strcmp between comando and orden: %d\n", strcmp(comando, orden));
-            //printf("Directorio pointer: %p\n", &directorio);
-            //printf("File 1: %s\t I-Node: %d\t Size: %d\n", directorio[0].dir_nfich, directorio[0].dir_inodo, ext_blq_inodos.blq_inodos[directorio[0].dir_inodo].size_fichero);
-            //printf("File 2: %s\t I-Node: %d\t Size: %d\n", directorio[1].dir_nfich, directorio[1].dir_inodo, ext_blq_inodos.blq_inodos[directorio[1].dir_inodo].size_fichero);
-            //printf("File 3: %s\t I-Node: %d\t Size: %d\n", directorio[2].dir_nfich, directorio[2].dir_inodo, ext_blq_inodos.blq_inodos[directorio[2].dir_inodo].size_fichero);
-            //printf("File 4: %s\t I-Node: %d\t Size: %d\n", directorio[3].dir_nfich, directorio[3].dir_inodo, ext_blq_inodos.blq_inodos[directorio[3].dir_inodo].size_fichero);
         } while (ComprobarComando(comando, &orden, &argumento1, &argumento2, token) != 0);
 
         // Escritura de metadatos en comandos rename, remove, copy
-        //Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-        //GrabarByteMaps(&ext_bytemaps, fent);
-        //GrabarSuperBloque(&ext_superblock, fent);
+        Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+        GrabarByteMaps(&ext_bytemaps, fent);
+        GrabarSuperBloque(&ext_superblock, fent);
         int grabardatos = 0;
-        //GrabarDatos(memdatos, fent);
+        GrabarDatos(memdatos, fent);
         //Si el comando es salir se habrán escrito todos los metadatos
         //faltan los datos y cerrar
-
-        //printf("I am 2 \n");
-        printf("Orden: %s\n", orden);
         if (strcmp(orden, "salir") == 0) {
-            //GrabarDatos(memdatos, fent);
+            Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+            GrabarByteMaps(&ext_bytemaps, fent);
+            GrabarSuperBloque(&ext_superblock, fent);
+            GrabarDatos(memdatos, fent);
             fclose(fent);
             printf("salir command executed\n");
             return 0;
@@ -179,7 +165,6 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
     }
     // Single line fix, now it is not neccessary to put an extar space when using a comand with no arguments.
     strcomando = strtok(strcomando, "\n");
-    printf("Comando: %s\n", strcomando);
     token = strtok(strcomando, " ");
 
     for (int i = 0; i < 3; i++) {
@@ -202,19 +187,20 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
             token = strtok(NULL, " ");
         }
     }
-
-    printf("Comando: %s\n", strcomando);
-    printf("Orden: %s\n", *orden);
-    printf("Argumento 1: %s\n", *argumento1);
-    printf("Argumento 2: %s\n", *argumento2);
-    //printf("Length of comando: %d\n", strlen(strcomando));
-    //printf("Length of orden: %d\n", strlen(*orden));
-    //printf("Length of \"dir\": %d\n", strlen("dir"));
     //---------END COMMAND SPLITTING-----------//
 
 
     if (*orden == NULL) {
         printf("No command entered.\n");
+        printf("Available commands: \n");
+        printf("\tsalir: Let's you end the execution of this program.\n");
+        printf("\tdir: Lists files contained in the directory as well as their properties.\n");
+        printf("\tinfo: Displays superblock information.\n");
+        printf("\tbytemaps: Displays inode and blocks bytemaps.\n");
+        printf("\trename: Take a wild guess as to what this command does. It lets you rename files.\n");
+        printf("\tprint: prints the contents of a file (similar to \"cat\" in a typical Linux terminal).");
+        printf("\tremove: deletes the file from the directory.\n");
+        printf("\tcopy: Copies one file from the directory to a new file.\n");
         return -1; // Invalid command
     }
 
@@ -227,6 +213,15 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
     }
 
     printf("Invalid command: %s\n", *orden);
+    printf("Available commands: \n");
+    printf("\tsalir: Let's you end the execution of this program.\n");
+    printf("\tdir: Lists files contained in the directory as well as their properties.\n");
+    printf("\tinfo: Displays superblock information.\n");
+    printf("\tbytemaps: Displays inode and blocks bytemaps.\n");
+    printf("\trename: Take a wild guess as to what this command does. It lets you rename files.\n");
+    printf("\tprint: prints the contents of a file (similar to \"cat\" in a typical Linux terminal).\n");
+    printf("\tremove: deletes the file from the directory.\n");
+    printf("\tcopy: Copies one file from the directory to a new file.\n");
     return -1; // Command not recognized
 }
 
@@ -391,13 +386,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         int binWrite;
         binWrite = fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
 
-        printf("Objects written (DATA): %d\n", binWrite);
+        //printf("Objects written (DATA): %d\n", binWrite);
 
         // Verify that all blocks were written correctly
         if (binWrite != MAX_BLOQUES_DATOS) {
             printf("Error: Failed to write data blocks to file.\n");
         } else {
-            printf("Data blocks successfully written to file.\n");
+            //printf("Data blocks successfully written to file.\n");
         }
     }
 
@@ -409,13 +404,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         // Write the superblock to the file
         int binWrite = fwrite(ext_superblock, SIZE_BLOQUE, 1, fich);
 
-        printf("Objects written (SUPERBLOCK): %d\n", binWrite);
+        //printf("Objects written (SUPERBLOCK): %d\n", binWrite);
 
         // Verify that the superblock was written correctly
         if (binWrite != 1) {
             printf("Error: Failed to write the superblock to the file.\n");
         } else {
-            printf("Superblock successfully written to file.\n");
+            //printf("Superblock successfully written to file.\n");
         }
     }
 
@@ -427,13 +422,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         // Write the bytemaps to the file
         int binWrite = fwrite(ext_bytemaps, SIZE_BLOQUE, 1, fich);
 
-        printf("Objects written (BYTEMAPS): %d\n", binWrite);
+        //printf("Objects written (BYTEMAPS): %d\n", binWrite);
 
         // Verify if the bytemaps block was written to correctly
         if (binWrite != 1) {
             printf("Error: Failed to write the bytemaps to the file.\n");
         } else {
-            printf("Bytemaps successfully written to file.\n");
+            //printf("Bytemaps successfully written to file.\n");
         }
     }
 
@@ -444,13 +439,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         fseek(fich, 2 * SIZE_BLOQUE, SEEK_SET);
         int binWriteInode = fwrite(inodos, SIZE_BLOQUE, 1, fich);
 
-        printf("Objects written (INODES): %d\n", binWriteInode);
+        //printf("Objects written (INODES): %d\n", binWriteInode);
 
         // Verify if the inodes block was written to correctly
         if (binWriteInode != 1) {
             printf("Error: Failed to write inodes block to the file.\n");
         } else {
-            printf("Inodes block successfully written to file.\n");
+            //printf("Inodes block successfully written to file.\n");
         }
 
         // Write the directory block to its location (block 3)
@@ -458,13 +453,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         fseek(fich, 3 * SIZE_BLOQUE, SEEK_SET);
         int binWriteDir = fwrite(directorio, SIZE_BLOQUE, 1, fich);
 
-        printf("Objects written (DIRECTORY): %d\n", binWriteDir);
+        //printf("Objects written (DIRECTORY): %d\n", binWriteDir);
 
         // Verify if the directory block was written to correctly
         if (binWriteDir != 1) {
             printf("Error: Failed to write directory block to the file.\n");
         } else {
-            printf("Directory block successfully written to file.\n");
+            //printf("Directory block successfully written to file.\n");
         }
     }
 
@@ -513,74 +508,123 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
     }
 
     int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,
-               EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,
-               EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich) {
-        int foundDest = -1;
-        int foundSrc = -1;
-        int freeFile = 0;
-        unsigned int freeblocks = 0;
-        int freeInode = 0;
-        for (int i = 0; i < MAX_FICHEROS; i++) {
-            // This happens when the file we want to delete is found (not NULL inode and the name matches)
-            if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombreorigen) == 0) {
-                // Found takes the value of the index where the file we want to delete is
-                foundSrc = i;
-                break;
-            }
-        }
-        for (int i = 0; i < MAX_FICHEROS; i++) {
-            // This happens when the file we want to delete is found (not NULL inode and the name matches)
-            if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombredestino) == 0) {
-                // Found takes the value of the index where the file we want to delete is
-                foundDest = i;
+           EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,
+           EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich)
+    {
+        int srcIndex = -1;
+        int destIndex = -1;
+        int freeInodeIndex = -1;
+
+        // We search for the source file.
+        for (int i = 0; i < MAX_FICHEROS; i++)
+        {
+            if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombreorigen) == 0)
+            {
+                srcIndex = i;
                 break;
             }
         }
 
-        // If the file is not found, return an error telling the user that the file either doesn't exist or wasn't found
-        if (foundSrc == -1) {
-            printf("Error: File \"%s\" doesn't exist or was not found.\n", nombreorigen);
+        // If the file wasn't found, we inform the user and end the copy execution.
+        if (srcIndex == -1)
+        {
+            printf("Error: File \"%s\" doesn't exist or wasn't found.\n", nombreorigen);
             return -1;
         }
-        if (foundDest != -1) {
-            printf("You cannot paste a file in the position of another file\n");
+
+        // Check to see if there is already a file with the desired name of the new copy.
+        // Should that name be in use, the copy will not be done and the user will be informed.
+        for (int i = 0; i < MAX_FICHEROS; i++)
+        {
+            if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, nombredestino) == 0)
+            {
+                printf("Error: File \"%s\" already exists.\n", nombredestino);
+                return -1;
+            }
+        }
+
+        // Check directory and inode bytemap to find free directory entry and inode.
+        // Should there be no directory entries or inodes left (which will likely not happen in this very limited simulation)
+            // the user will be informed and the copy will not proceed.
+        for (int i = 0; i < MAX_FICHEROS; i++)
+        {
+            if (directorio[i].dir_inodo == NULL_INODO)
+            {
+                destIndex = i;
+                break;
+            }
+        }
+        for (int i = 0; i < MAX_INODOS; i++)
+        {
+            if (ext_bytemaps->bmap_inodos[i] == 0)
+            {
+                freeInodeIndex = i;
+                break;
+            }
+        }
+        if (destIndex == -1 || freeInodeIndex == -1)
+        {
+            printf("Error: No directory entries or inodes left to occupy.\n");
             return -1;
         }
-        //check for a free file postion
-        for (int i = 0; i < MAX_FICHEROS; i++) {
-            if (directorio[i].dir_inodo != NULL_INODO) {
-                freeFile = i;
-            }
-        }
-        for (int i = 0; i < MAX_INODOS; i++) {
-            if (inodos[i].blq_inodos != NULL) {
-                freeInode = i;
-            }
-        }
-        memcpy(directorio[freeFile].dir_nfich, directorio[foundSrc].dir_nfich,LEN_NFICH);
-        memcpy(&inodos->blq_inodos[freeInode].size_fichero,
-               &inodos->blq_inodos[directorio[foundSrc].dir_inodo].size_fichero, sizeof(unsigned int));
 
-        for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
-            if (inodos[freeInode].blq_inodos == NULL) {
-                freeblocks = i;
-                memcpy(&inodos[freeInode].blq_inodos[freeblocks], &inodos[directorio[foundSrc].dir_inodo].blq_inodos,
-                       sizeof(unsigned int));
-            }
-        }
-        for (int k = 0; k < MAX_INODOS; k++) {
-            if (k == freeInode) {
-                memcpy(&ext_bytemaps->bmap_inodos[k], &inodos->blq_inodos[freeInode], sizeof(unsigned int));
-            }
+        // Copy metadata from the source file to the destination file.
+        // From this point onwards it is very important that things proceed smoothly.
+        // If there are any errors, after this, it could be a big issue.
+        directorio[destIndex].dir_inodo = freeInodeIndex;
+        strncpy(directorio[destIndex].dir_nfich, nombredestino, LEN_NFICH);
+        EXT_SIMPLE_INODE *srcInode = &inodos->blq_inodos[directorio[srcIndex].dir_inodo];
+        EXT_SIMPLE_INODE *destInode = &inodos->blq_inodos[freeInodeIndex];
+        // We make sure that the destination inode contains the same info. as the source inode
+        // This will make thing easier.
+        *destInode = *srcInode;
+        // We set all the blocks in the destination inode to NULL before we fill them.
+        memset(destInode->i_nbloque, NULL_BLOQUE, sizeof(destInode->i_nbloque));
 
-            for (int i1 = 0; i1 < MAX_BLOQUES_PARTICION; i1++) {
-                if (i1 == freeblocks) {
-                    memcpy(&ext_bytemaps->bmap_bloques[i1], &inodos->blq_inodos[freeInode].i_nbloque,
-                           sizeof(unsigned int));
+        int ogFreeBlocksCount = ext_superblock->s_free_blocks_count;
+        // Copy blocks
+        // Nice trick learnt on the internet: instead of putting an if statement inside the for loop
+            // you can put it in the for loop declaration itself as a condition. Nice.
+        for (int i = 0; i < MAX_NUMS_BLOQUE_INODO && srcInode->i_nbloque[i] != NULL_BLOQUE; i++)
+        {
+            int freeBlock = -1;
+            for (int j = 0; j < MAX_BLOQUES_DATOS; j++)
+            {
+                if (ext_bytemaps->bmap_bloques[j] == 0)
+                {
+                    freeBlock = j;
+                    break;
                 }
             }
+            // Here is where things can go downhill very quickly.
+            if (freeBlock == -1)
+            {
+                printf("Error: No free blocks left.\n");
+                // We mark all blocks in use by the now not neccessary copy file as unused. (just in case)
+                for (int k = 0; k < MAX_NUMS_BLOQUE_INODO && destInode->i_nbloque[k] != NULL_BLOQUE; k++)
+                {
+                    ext_bytemaps->bmap_bloques[k] = 0;
+                }
+                // We make sure that all the blocks are null so that no file is pointing at them (just in case)
+                memset(destInode->i_nbloque, NULL_BLOQUE, sizeof(destInode->i_nbloque));
+                // We make sure that the free block count is the same as it was before allocating any blocks (just in case)
+                ext_superblock->s_free_blocks_count = ogFreeBlocksCount;
+                return -1;
+            }
 
-
-            return 0;
+            // Allocate and copy the source block to the destination block.
+            ext_bytemaps->bmap_bloques[freeBlock] = 1;
+            ext_superblock->s_free_blocks_count--;
+            destInode->i_nbloque[i] = freeBlock;
+            // The index has to be -4 the original because memdatos is of size 96. Hard to explain but what it means is that
+                // memdatos starts 4 positions before the actual blocks, so we need to account for that.
+            memcpy(&memdatos[freeBlock - 4], &memdatos[srcInode->i_nbloque[i] - 4], SIZE_BLOQUE);
         }
+
+        // Mark inode as used and inform the user that the copy was successful.
+        ext_bytemaps->bmap_inodos[freeInodeIndex] = 1;
+        ext_superblock->s_free_inodes_count--;
+        printf("File copied.\n");
+        return 0;
     }
+
