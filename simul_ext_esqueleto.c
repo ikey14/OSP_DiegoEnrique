@@ -61,10 +61,10 @@ int main() {
     //fent = fopen("particion.bin","r+b");
 
     //ENRIQUE FILE OPEN ABSOLUTE PATH
-    //fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
+    fent = fopen("C:\\Users\\ikeum\\OneDrive\\Escritorio\\OS_EXT_PROJECT\\OSP_DiegoEnrique\\particion.bin","r+b");
     //DIEGO FILE OPEN ABSOLUTE PATH
     // TODO allow relative paths
-    fent = fopen("particion.bin", "r+b");
+    //fent = fopen("particion.bin", "r+b");
     if (fent == NULL) {
         printf("Error opening partition file, terminating program.\n");
         return 0;
@@ -133,26 +133,70 @@ int main() {
             Directorio(directorio, &ext_blq_inodos);
             printf("dir command executed\n");
         } else if (strcmp(orden, "rename") == 0) {
-            Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
-            grabardatos = 1;
-            printf("rename command executed\n");
+            if (argumento1 == NULL)
+            {
+                printf("NULL is not a valid file name. Try again.\n");
+            }
+            else if (argumento2 == NULL)
+            {
+                printf("NULL is not a valid file name, so you can't rename a file to that. Try again.\n");
+            }
+            else if (argumento1 != NULL && argumento2 != NULL)
+            {
+                Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
+                grabardatos = 1;
+                printf("rename command executed\n");
+            }
+
         } else if (strcmp(orden, "print") == 0) {
-            Imprimir(directorio, &ext_blq_inodos, datosfich, argumento1);
-            printf("print command executed\n");
+            if (argumento1 == NULL)
+            {
+                printf("NULL is not a valid file name. Try again.\n");
+            }
+            else if (argumento1 != NULL)
+            {
+                Imprimir(directorio, &ext_blq_inodos, datosfich, argumento1);
+                printf("print command executed\n");
+            }
+
         } else if (strcmp(orden, "remove") == 0) {
-            Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
-            grabardatos = 1;
-            printf("remove command executed\n");
+            if (argumento1 == NULL)
+            {
+                printf("NULL is not a valid file name. Try again.\n");
+            }
+            else if (argumento1 != NULL)
+            {
+                Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
+                grabardatos = 1;
+                printf("remove command executed\n");
+            }
         } else if (strcmp(orden, "copy") == 0) {
-            int copyStatus = Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent);
-            grabardatos = 1;
-            printf("copy command executed with status: %d\n", copyStatus);
+            if (argumento1 == NULL)
+            {
+                printf("NULL is not a valid file name. Try again.\n");
+            }
+            else if (argumento2 == NULL)
+            {
+                printf("NULL is not a valid file name, so you can't name the new file NULL. Try again.\n");
+            }
+            else if (argumento1 != NULL && argumento2 != NULL)
+            {
+                int copyStatus = Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent);
+                grabardatos = 1;
+                printf("copy command executed with status: %d\n", copyStatus);
+            }
         }
     }
 }
 
 int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **argumento2, char *token) {
     //---------COMMAND SPLITTING---------//
+    // If the command is NULL, then we return invalid command before doing anything to avoid a crash
+    if (strcomando == NULL)
+    {
+        printf("Null command, please introduce something. \n");
+        return -1;
+    }
     // Single line fix, now it is not neccessary to put an extar space when using a comand with no arguments.
     strcomando = strtok(strcomando, "\n");
     printf("Comando: %s\n", strcomando);
@@ -162,10 +206,13 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
         if (token != NULL) {
             if (i == 0) {
                 *orden = token;
+                *argumento1 = NULL;
+                *argumento2 = NULL;
             }
 
             if (i == 1) {
                 *argumento1 = token;
+                *argumento2 = NULL;
             }
 
             if (i == 2) {
@@ -176,13 +223,13 @@ int ComprobarComando(char *strcomando, char **orden, char **argumento1, char **a
         }
     }
 
-    /* printf("Comando: %s\n",strcomando);
+     printf("Comando: %s\n",strcomando);
      printf("Orden: %s\n",*orden);
      printf("Argumento 1: %s\n",*argumento1);
      printf("Argumento 2: %s\n",*argumento2);
-     printf("Length of comando: %d\n", strlen(strcomando));
-     printf("Length of orden: %d\n", strlen(*orden));
-     printf("Length of \"dir\": %d\n", strlen("dir")); */
+     //printf("Length of comando: %d\n", strlen(strcomando));
+     //printf("Length of orden: %d\n", strlen(*orden));
+     //printf("Length of \"dir\": %d\n", strlen("dir"));
     //---------END COMMAND SPLITTING-----------//
 
 
