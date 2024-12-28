@@ -280,24 +280,33 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         return -1;
     }
     char *printText = malloc(sizeof(char) * SIZE_BLOQUE);
-    int blocks = 0;
+    int blocks[MAX_BLOQUES_DATOS];
     EXT_SIMPLE_INODE *inode = &inodos->blq_inodos[directorio[found].dir_inodo];
+    int blockindex=0;
 
-    int block = 0;
     for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
         if (inode->i_nbloque[i] != NULL_BLOQUE) {
-            block=inode->i_nbloque[i];
+            blocks[0]=inode->i_nbloque[i];
+            memcpy(printText, &memdatos[blocks[0]],SIZE_BLOQUE);
+            printf("%s", printText);
         }
-    }
+        if (inode->i_nbloque[i] != NULL_BLOQUE && blocks[0] != inode->i_nbloque[i]) {
+            blockindex++;
+            blocks[blockindex] = inode->i_nbloque[i];
 
 
-        memcpy(printText, &memdatos[block],SIZE_BLOQUE);
-        printf("%s\n", printText);
+        }
 
 
-        free(printText);
-    }
 
+        }
+
+
+
+    printf("\n");
+
+    free(printText);
+}
 
     void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
         // We start the loop with 1 instead of 0 so that we don't list the directory itself.
